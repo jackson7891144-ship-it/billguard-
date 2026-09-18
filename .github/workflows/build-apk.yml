@@ -1,1 +1,22 @@
-
+name: Build BillGuard APK
+on:
+  push: { branches: [ main, master ] }
+  workflow_dispatch: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip -o BillGuard.zip -d .
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
+      - working-directory: ./BillGuard
+        run: |
+          if [ ! -f "./gradlew" ]; then gradle wrapper --gradle-version 8.6; fi
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BillGuard-debug-apk
+          path: BillGuard/app/build/outputs/apk/debug/*.apk
